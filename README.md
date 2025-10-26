@@ -6,6 +6,7 @@ sudo apt install wget -y
 Instalacion de dependencias necesarias
 sudo apt-get install libgl1 libglx-mesa0 libxrandr2 libxrandr2 libxss1 libxcursor1 libxcomposite1 libxi6 libxtst6
 sudo apt-get install libasound2t64
+sudo apt install zip unzip -y
 
 Instalar anaconda
 wget https://repo.anaconda.com/archive/Anaconda3-2025.06-1-Linux-x86_64.sh
