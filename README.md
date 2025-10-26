@@ -53,3 +53,9 @@ Para 1050TI
 pip install torch==2.7.1+cu118 torchvision==0.22.1+cu118 torchaudio==2.7.1+cu118 --index-url https://download.pytorch.org/whl/cu118
 
 
+Utilizar modelo 
+
+(Abrir terminal de Conda (Windows))
+conda init powershell
+conda activate fede-model-env1
+python utils/yolo_detect.py --model my_model/my_model.pt --source usb0 --resolution 1280x720
