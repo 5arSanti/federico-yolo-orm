@@ -61,9 +61,18 @@ elif os.path.isfile(img_source):
 elif 'usb' in img_source:
     source_type = 'usb'
     usb_idx = int(img_source[3:])
+elif img_source.startswith('/dev/video'):
+    source_type = 'usb'
+    usb_idx = int(img_source.replace('/dev/video', ''))
+elif img_source.isdigit():
+    source_type = 'usb'
+    usb_idx = int(img_source)
 elif 'picamera' in img_source:
     source_type = 'picamera'
     picam_idx = int(img_source[8:])
+elif img_source.startswith('http://') or img_source.startswith('https://'):
+    source_type = 'ipcam'
+    stream_url = img_source
 else:
     print(f'Input {img_source} is invalid. Please try again.')
     sys.exit(0)
@@ -104,10 +113,69 @@ elif source_type == 'video' or source_type == 'usb':
     elif source_type == 'usb': cap_arg = usb_idx
     cap = cv2.VideoCapture(cap_arg)
 
+    # Check if we're in WSL
+    with open('/proc/version', 'r') as f:
+        proc_version = f.read().lower()
+        is_wsl = 'microsoft' in proc_version or 'wsl' in proc_version
+    
+    if not cap.isOpened() and is_wsl and source_type == 'usb':
+        print('\n⚠️  ADVERTENCIA: Estás ejecutando en WSL (Windows Subsystem for Linux)')
+        print('WSL no tiene acceso directo a cámaras USB por defecto.\n')
+        print('💡 Soluciones:')
+        print('1. **Usar DroidCam con IP camera** (recomendado):')
+        print('   !python utils/yolo_detect.py --model my_model/my_model.pt --source "http://YOUR_IP:4747/video" --resolution 1280x720')
+        print('2. **Usar WSL2 con USB passthrough**: https://learn.microsoft.com/en-us/windows/wsl/connect-usb')
+        print('3. **Ejecutar directamente en Windows** (no WSL)')
+        print('4. **Usar otra cámara IP o red**')
+        print('\n')
+        sys.exit(0)
+
     # Set camera or video resolution if specified by user
     if user_res:
         ret = cap.set(3, resW)
         ret = cap.set(4, resH)
+
+elif source_type == 'ipcam':
+    # Try different DroidCam URL formats
+    urls_to_try = [
+        stream_url,
+        stream_url.replace('/video', '/mjpegfeed'),  # Try MJPEG feed
+    ]
+    
+    cap = None
+    successful_url = None
+    
+    for url in urls_to_try:
+        # Try with FFMPEG backend
+        cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
+        
+        # Try opening with direct backend
+        if not cap.isOpened():
+            cap = cv2.VideoCapture(url)
+        
+        if cap.isOpened():
+            ret, frame = cap.read()
+            if ret and frame is not None:
+                successful_url = url
+                print(f'Successfully connected to IP camera at: {url}')
+                break
+            else:
+                cap.release()
+                cap = None
+    
+    if cap is None or not cap.isOpened():
+        print(f'ERROR: Unable to open IP camera stream. Tried URLs:')
+        for url in urls_to_try:
+            print(f'  - {url}')
+        print('\nTips for DroidCam:')
+        print('1. Make sure DroidCam app is running on your phone')
+        print('2. Check that your PC and phone are on the same WiFi network')
+        print('3. Try IP camera mode instead of USB mode in DroidCam')
+        sys.exit(0)
+
+    if user_res:
+        cap.set(3, resW)
+        cap.set(4, resH)
 
 elif source_type == 'picamera':
     from picamera2 import Picamera2
@@ -149,6 +217,12 @@ while True:
         ret, frame = cap.read()
         if (frame is None) or (not ret):
             print('Unable to read frames from the camera. This indicates the camera is disconnected or not working. Exiting program.')
+            break
+
+    elif source_type == 'ipcam': # If source is an IP camera, grab frame from stream
+        ret, frame = cap.read()
+        if (frame is None) or (not ret):
+            print('Unable to read frames from IP camera. The stream may have disconnected. Exiting program.')
             break
 
     elif source_type == 'picamera': # If source is a Picamera, grab frames using picamera interface
@@ -201,8 +275,8 @@ while True:
             # Basic example: count the number of objects in the image
             object_count = object_count + 1
 
-    # Calculate and draw framerate (if using video, USB, or Picamera source)
-    if source_type == 'video' or source_type == 'usb' or source_type == 'picamera':
+    # Calculate and draw framerate (if using video, USB, IP camera, or Picamera source)
+    if source_type in ['video', 'usb', 'ipcam', 'picamera']:
         cv2.putText(frame, f'FPS: {avg_frame_rate:0.2f}', (10,20), cv2.FONT_HERSHEY_SIMPLEX, .7, (0,255,255), 2) # Draw framerate
     
     # Display detection results
@@ -213,7 +287,7 @@ while True:
     # If inferencing on individual images, wait for user keypress before moving to next image. Otherwise, wait 5ms before moving to next frame.
     if source_type == 'image' or source_type == 'folder':
         key = cv2.waitKey()
-    elif source_type == 'video' or source_type == 'usb' or source_type == 'picamera':
+    elif source_type in ['video', 'usb', 'ipcam', 'picamera']:
         key = cv2.waitKey(5)
     
     if key == ord('q') or key == ord('Q'): # Press 'q' to quit
@@ -240,7 +314,7 @@ while True:
 
 # Clean up
 print(f'Average pipeline FPS: {avg_frame_rate:.2f}')
-if source_type == 'video' or source_type == 'usb':
+if source_type in ['video', 'usb', 'ipcam']:
     cap.release()
 elif source_type == 'picamera':
     cap.stop()

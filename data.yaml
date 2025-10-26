@@ -1,0 +1,12 @@
+path: data
+train: train/images
+val: validation/images
+nc: 7
+names:
+- Andrea Lopez
+- Cristhian Tapiero
+- Daniela Fierro
+- Johel Arias
+- Marcela Cifuentes
+- Mauricio Alonso
+- "Pablo Carre\xF1o"

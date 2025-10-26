@@ -43,6 +43,8 @@ Instalar dependencias dentro del enviroment
 conda activate fede-model-env1
 pip install ipykernel
 pip install ultralytics
+sudo apt install ffmpeg
+
 
 Version general
 pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu130
