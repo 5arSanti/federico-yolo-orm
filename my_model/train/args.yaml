@@ -103,4 +103,4 @@ auto_augment: randaugment
 erasing: 0.4
 cfg: null
 tracker: botsort.yaml
-save_dir: /home/personal/Projects/federico-yolo-orm/runs/detect/train
+save_dir: D:\Todo\Documentos\Santiago\3_Trabajo Profesional\Full-Stack-Projects\federico-yolo-orm\runs\detect\train
