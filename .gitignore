@@ -209,3 +209,5 @@ __marimo__/
 data/
 runs/
 dataset/custom_data/
+dataset/set/
+my_model/train/
