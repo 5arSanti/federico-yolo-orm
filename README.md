@@ -37,6 +37,15 @@ docker pull heartexlabs/label-studio:latest
 Activar label studio (para etiquetado)
 sudo docker run -d -p 8080:8080 --user 1000:1000 -v $(pwd)/mydata:/label-studio/data -e LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true -e LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/label-studio/data heartexlabs/label-studio:latest
 
+O este:
+sudo docker run -d --name label-studio \
+  -p 8080:8080 \
+  --user 1000:1000 \
+  -v "$PWD/mydata:/label-studio/data" \
+  -e LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true \
+  -e LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/label-studio/data \
+  heartexlabs/label-studio:latest
+
 
 
 Instalar dependencias dentro del enviroment
