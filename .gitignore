@@ -211,3 +211,5 @@ runs/
 dataset/custom_data/
 dataset/set/
 my_model/train/
+dataset/data.zip
+dataset/set.zip

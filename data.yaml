@@ -1,0 +1,19 @@
+path: data
+train: train/images
+val: validation/images
+nc: 14
+names:
+- Calculadora
+- Borrador
+- Cuaderno
+- "L\xE1piz"
+- Regla
+- Andrea Lopez
+- Anyi Becerra
+- Cristhian Tapiero
+- Daniela Fierro
+- "Diego Pati\xF1o"
+- Johel Arias
+- Marcela Cifuentes
+- Mauricio Alonso
+- "Pablo Carre\xF1o"
