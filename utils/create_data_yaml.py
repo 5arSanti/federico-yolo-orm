@@ -30,49 +30,17 @@ def create_data_yaml(path_to_classes_txt, path_to_data_yaml):
   return
 
 
-def create_data_yaml_from_set_yaml(path_to_set_yaml: str, path_to_data_yaml: str):
-  if not os.path.exists(path_to_set_yaml):
-    print(f'set data.yaml not found at {path_to_set_yaml}')
-    return
-
-  with open(path_to_set_yaml, 'r') as f:
-    src_yaml = yaml.safe_load(f)
-
-  names: List[str] = src_yaml.get('names', []) or []
-  if not isinstance(names, list) or len(names) == 0:
-    print('Could not read class names from set data.yaml. Aborting.')
-    return
-
-  number_of_classes = int(src_yaml.get('nc', len(names)))
-
-  data = {
-      'path': 'data',
-      'train': 'train/images',
-      'val': 'validation/images',
-      'nc': number_of_classes,
-      'names': names
-  }
-
-  with open(path_to_data_yaml, 'w') as f:
-    yaml.dump(data, f, sort_keys=False)
-
-  print(f'Created config file at {path_to_data_yaml} from {path_to_set_yaml}')
-
-  return
-
-
 def create_data_yaml_from_set_and_classes(path_to_set_yaml: str, path_to_classes_txt: str, path_to_data_yaml: str):
-  if not os.path.exists(path_to_set_yaml):
-    print(f'set data.yaml not found at {path_to_set_yaml}')
-    return None
-
-  with open(path_to_set_yaml, 'r') as f:
-    set_yaml = yaml.safe_load(f)
-
-  set_names: List[str] = set_yaml.get('names', []) or []
-  if not isinstance(set_names, list):
-    print('Invalid names list in set data.yaml')
-    return None
+  # Read classes from set data.yaml if it exists; otherwise, fall back to only custom classes
+  set_names: List[str] = []
+  if os.path.exists(path_to_set_yaml):
+    with open(path_to_set_yaml, 'r') as f:
+      set_yaml = yaml.safe_load(f) or {}
+    names_candidate = set_yaml.get('names', []) or []
+    if isinstance(names_candidate, list):
+      set_names = names_candidate
+    else:
+      print('Invalid names list in set data.yaml; proceeding with custom classes only')
 
   custom_names: List[str] = []
   if os.path.exists(path_to_classes_txt):
@@ -81,6 +49,8 @@ def create_data_yaml_from_set_and_classes(path_to_set_yaml: str, path_to_classes
         line = line.strip()
         if line:
           custom_names.append(line)
+  else:
+    print(f'classes.txt not found at {path_to_classes_txt}')
 
   final_names: List[str] = []
   seen = set()
@@ -92,6 +62,10 @@ def create_data_yaml_from_set_and_classes(path_to_set_yaml: str, path_to_classes
     if n not in seen:
       final_names.append(n)
       seen.add(n)
+
+  if len(final_names) == 0:
+    print('No classes found in either set data.yaml or classes.txt; cannot create data.yaml')
+    return None
 
   data = {
       'path': 'data',
