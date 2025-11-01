@@ -212,4 +212,6 @@ dataset/custom_data/
 dataset/set/
 my_model/train/
 dataset/data.zip
+data.zip
+*.zip
 dataset/set.zip
